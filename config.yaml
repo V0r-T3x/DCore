@@ -7,5 +7,13 @@ screens:
 #    name: "luma_oled_128x64"
 #    address: 0x3C
 
-#input1:
-#  name: "fb0"
+frame_inputs:
+  input1:
+    type: "retrieved" # or "received"
+    name: "pwnagotchi"
+    path: "/var/tmp/pwnagotchi/pwnagotchi.png"
+
+  input2:
+    type: "retrieved" # or "received"
+    name: "terminal"
+    path: "fb0"
