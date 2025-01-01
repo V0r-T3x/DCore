@@ -1,0 +1,11 @@
+screens:
+  screen1:
+    name: "waveshare_3.5_clone"
+    spi_port: 0
+
+#  screen2:
+#    name: "luma_oled_128x64"
+#    address: 0x3C
+
+#input1:
+#  name: "fb0"
