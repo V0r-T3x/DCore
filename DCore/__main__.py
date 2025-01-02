@@ -1,4 +1,4 @@
-from .display_config import DISPLAY_SETTINGS
+from DCore.display_config import DISPLAY_SETTINGS
 import yaml
 from importlib import import_module
 from PIL import Image
@@ -153,5 +153,5 @@ if __name__ == "__main__":
     display_manager = DisplayManager(CONFIG)
     main_loop = Thread(target=display_manager.run_display_cycle, daemon=True)
     main_loop.start()
-    input("Press Enter to stop...\n")
-    print("Exiting.")
+    while True:
+        continue
