@@ -20,7 +20,6 @@ cd /home/pi/DCore-repo/scripts/
   - This will create the python venv in `/home/pi/DCore`
 ```
 chmod +x install.sh
-chmod +x setup.sh
 ./install.sh
 ```
 - Activate the python venv.
