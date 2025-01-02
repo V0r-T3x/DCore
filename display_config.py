@@ -51,7 +51,7 @@ DISPLAY_SETTINGS = {
         "spi_device": 0,
         "fps": 60,
     },
-        "displayhatmini": {
+    "displayhatmini": {
         "driver": "luma.lcd",
         "class": "st7789",
         "width": 320,
