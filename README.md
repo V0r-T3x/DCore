@@ -3,22 +3,49 @@
  **Experimental work**
 
 # Installation steps
-- copy create_venv.py in /home/pi
+_Need internet connection_
+- Go in the home folder:
 ```
 cd /home/pi
-python3 create_venv.py DCore
+```
+- Clone this github repo:
+```
+git clone https://github.com/V0r-T3x/DCore.git DCore-repo
+```
+- Go inside the repo scripts folder:
+```
+cd /home/pi/DCore-repo/scripts/
+```
+- Make the scripts executable and run the install script.
+  - This will create the python venv in `/home/pi/DCore`
+```
+chmod +x install.sh
+chmod +x setup.sh
+./install.sh
+```
+- Activate the python venv.
+```
 source /home/pi/DCore/bin/act*
 ```
-- copy DCore files in /home/pi/DCore/lib/python3.11/site-packages/DCore
+- Configure DCore with the rigth screens and inputs.
 ```
-cd /home/pi/DCore/lib/python3.11/site-packages/DCore
-chmod +x setup.sh
+nano /home/pi/DCore/lib/python3.11/site-packages/DCore/config.yaml
 ```
-- need internet connection to download packages and requirements
+- Configuration file exemple:
 ```
-./setup.sh
+screens:
+  screen1:
+    name: "displayhatmini" # "waveshare_3.5_clone" or "gamepi_1.5_lcd" (actual compatible screens)
+    spi_port: 0
+    default_input: input1
+
+frame_inputs:
+  input1:
+    type: "retrieved" # or "received"
+    name: "pwnagotchi"
+    path: "/var/tmp/pwnagotchi/pwnagotchi.png"
 ```
-- configure DCore with the rigth screens and inputs
+- Starting DCore.
 ```
 python3 -m DCore
 ```
