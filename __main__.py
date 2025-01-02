@@ -38,23 +38,27 @@ class DisplayManager:
         """Initialize a single display based on the provided settings."""
         driver_module = settings["driver"]
         driver_class = settings["class"]
+        target_width = settings["width"]
+        target_height = settings["height"]
         if driver_module == "waveshare_epd":
             epd_module = import_module(f"waveshare_epd.{driver_class}")
             return epd_module.EPD()
         elif driver_module.startswith("luma."):
             luma_device = import_module(f"{driver_module}.device")
             serial = self.init_serial_interface(settings)
-            display = getattr(luma_device, driver_class)(serial)
+            display = getattr(luma_device, driver_class)(serial, width=target_width, height=target_height, rotate=settings.get("rotate", 0))
             if settings.get("bgr", False):
                 display.command(0x36, 0x40)  # Set the BGR mode
-            if settings.get("inverse", False):
-                display.command(0x21)  # Enable inverse color
+            if settings.get("invert", False):
+                display.command(0x21)  # Enable invert color
             else:
-                display.command(0x20)  # Disable inverse color
+                display.command(0x20)  # Disable invert color
             return display
 
     def init_serial_interface(self, settings):
         """Initialize SPI or I2C serial interface based on display settings."""
+        #print(f"Initializing serial interface for {settings['name']}")
+        print(f"Settings: {settings}")
         interface = settings["interface"]
         if interface == "i2c":
             from luma.core.interface.serial import i2c
@@ -99,14 +103,13 @@ class DisplayManager:
         settings = DISPLAY_SETTINGS.get(display_name, {})
         target_width = settings.get("width", image.width)
         target_height = settings.get("height", image.height)
-        try:
-            resized_image = image.resize((target_width, target_height), Image.Resampling.LANCZOS)
-        except AttributeError:
-            resized_image = image.resize((target_width, target_height), Image.LANCZOS)
+        target_mode = settings.get("mode", "RGB")
+        resized_image = image.resize((target_width, target_height))
+
         if settings.get("horizontal_flip", False):
             resized_image = resized_image.transpose(Image.FLIP_LEFT_RIGHT)
         if display.__class__.__name__.startswith("EPD"):
-            resized_image = resized_image.convert("1")
+            resized_image = resized_image.convert(self.settings.get("mode", "1"))
         if hasattr(display, "display"):
             display.display(resized_image)
         elif hasattr(display, "show"):
@@ -119,6 +122,9 @@ class DisplayManager:
         last_frames = {screen: None for screen in self.screens}
         while True:
             for screen_name, screen_config in self.config["screens"].items():
+                #print(f"Running display cycle for screen '{screen_name}'")
+                settings = DISPLAY_SETTINGS.get(screen_config['name'], {})
+                #print(f"Settings for screen '{screen_config['name']}': {settings}")
                 # Get the input associated with this screen
                 input_name = screen_config.get("default_input")
                 if not input_name:
@@ -130,10 +136,10 @@ class DisplayManager:
                     continue
                 source_path = frame_input["path"]
                 display_name = screen_config["name"]
-                fps = DISPLAY_SETTINGS.get(display_name, {}).get("fps", 30)
+                fps = DISPLAY_SETTINGS.get(screen_config['name'], {}).get("fps", 30)
                 try:
                     # Load the image from the source path
-                    current_image = Image.open(source_path).convert("RGB")
+                    current_image = Image.open(source_path).convert(settings.get("mode", "RGB"))
                 except (FileNotFoundError, IOError, Image.UnidentifiedImageError, SyntaxError) as e:
                     current_image = last_frames.get(screen_name)
                 if current_image:

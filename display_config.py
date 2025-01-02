@@ -56,6 +56,10 @@ DISPLAY_SETTINGS = {
         "class": "st7789",
         "width": 320,
         "height": 240,
+        "rotate": 0,
+        "bgr": False,
+        "invert": True,
+        "horizontal_flip": False,
         "pins": {
             "dc": 9, 
             "cs": 1,
@@ -66,6 +70,7 @@ DISPLAY_SETTINGS = {
         "spi_port": 0,
         "spi_device": 0,
         "fps": 60,
+        "mode": "RGBA",
     },
     "waveshare_3.5_clone": {
         "driver": "luma.lcd",
@@ -74,7 +79,7 @@ DISPLAY_SETTINGS = {
         "height": 480,
         "rotate": 1,
         "bgr": False,
-        "inverse": False,
+        "invert": False,
         "horizontal_flip": True,
         "pins": {
             "dc": 24,
@@ -86,5 +91,6 @@ DISPLAY_SETTINGS = {
         "spi_port": 0,
         "spi_device": 0,
         "fps": 60,
+        "mode": "RGB",
     },
 }
