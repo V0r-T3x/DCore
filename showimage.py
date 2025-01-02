@@ -35,7 +35,7 @@ def main():
             try:
                 current_image = Image.open(image_path).rotate(270, expand=True)
                 current_image = current_image.resize((320, 480)).convert("RGB")
-                last_image = current_image  # Update last_image if loading succeeds
+                last_image = current_image
             except (FileNotFoundError, IOError, Image.UnidentifiedImageError, SyntaxError) as e:
                 if last_image:
                     current_image = last_image

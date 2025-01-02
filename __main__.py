@@ -1,19 +1,27 @@
-import yaml
-#from display_config import DISPLAY_SETTINGS
 from .display_config import DISPLAY_SETTINGS
+import yaml
 from importlib import import_module
-from PIL import Image  # Import Pillow for image manipulation
-
+from PIL import Image
+from threading import Thread
+import time
 
 class DisplayManager:
     def __init__(self, config_file):
         self.config = self.load_config(config_file)
         self.screens = self.init_screens()
+        self.inputs = self.init_inputs()
 
     def load_config(self, config_file):
         """Load the display configuration from a YAML file."""
         with open(config_file, 'r') as file:
             return yaml.safe_load(file)
+
+    def init_inputs(self):
+        """Initialize input sources for frames."""
+        inputs = {}
+        for input_name, input_config in self.config["frame_inputs"].items():  # Changed "inputs" to "frame_inputs"
+            inputs[input_name] = input_config["path"]  # Assuming "path" is the key for the source
+        return inputs
 
     def init_screens(self):
         """Initialize multiple displays based on the configuration."""
@@ -21,10 +29,8 @@ class DisplayManager:
         for screen_name, screen_config in self.config["screens"].items():
             display_name = screen_config["name"]
             settings = DISPLAY_SETTINGS.get(display_name)
-
             if not settings:
                 raise ValueError(f"Unsupported display: {display_name}")
-
             screens[screen_name] = self.init_display(settings)
         return screens
 
@@ -32,16 +38,13 @@ class DisplayManager:
         """Initialize a single display based on the provided settings."""
         driver_module = settings["driver"]
         driver_class = settings["class"]
-
         if driver_module == "waveshare_epd":
             epd_module = import_module(f"waveshare_epd.{driver_class}")
             return epd_module.EPD()
-
         elif driver_module.startswith("luma."):
             luma_device = import_module(f"{driver_module}.device")
             serial = self.init_serial_interface(settings)
             display = getattr(luma_device, driver_class)(serial)
-
             if settings.get("bgr", False):
                 display.command(0x36, 0x40)  # Set the BGR mode
             if settings.get("inverse", False):
@@ -59,9 +62,9 @@ class DisplayManager:
         elif interface == "spi":
             from luma.core.interface.serial import spi
             pins = settings["pins"]
-            return spi(port=pins.get("spi_port", 0), device=pins.get("cs", 0),
+            return spi(port=settings.get("spi_port", 0), device=pins.get("cs", 0),
                        gpio_DC=pins["dc"], gpio_RST=pins.get("reset"),
-                       bus_speed_hz=settings.get("bus_speed_hz", 8000000))
+                       spi_speed_hz=settings.get("spi_speed_hz", 8000000))
         else:
             raise ValueError(f"Unsupported interface: {interface}")
 
@@ -92,43 +95,57 @@ class DisplayManager:
         if not display:
             print(f"Screen '{screen_name}' not found.")
             return
-
         display_name = self.config["screens"][screen_name]["name"]
         settings = DISPLAY_SETTINGS.get(display_name, {})
-
+        target_width = settings.get("width", image.width)
+        target_height = settings.get("height", image.height)
+        try:
+            resized_image = image.resize((target_width, target_height), Image.Resampling.LANCZOS)
+        except AttributeError:
+            resized_image = image.resize((target_width, target_height), Image.LANCZOS)
         if settings.get("horizontal_flip", False):
-            image = image.transpose(Image.FLIP_LEFT_RIGHT)
-
+            resized_image = resized_image.transpose(Image.FLIP_LEFT_RIGHT)
         if display.__class__.__name__.startswith("EPD"):
-            image = image.convert("1")
-
+            resized_image = resized_image.convert("1")
         if hasattr(display, "display"):
-            display.display(image)
+            display.display(resized_image)
         elif hasattr(display, "show"):
-            display.show(image)
+            display.show(resized_image)
         else:
             print("Warning: Display method not supported for this screen.")
 
+    def run_display_cycle(self):
+        """Main loop to manage inputs and screens."""
+        last_frames = {screen: None for screen in self.screens}
+        while True:
+            for screen_name, screen_config in self.config["screens"].items():
+                # Get the input associated with this screen
+                input_name = screen_config.get("default_input")
+                if not input_name:
+                    print(f"No default_input defined for screen '{screen_name}'")
+                    continue
+                frame_input = self.config["frame_inputs"].get(input_name)
+                if not frame_input:
+                    print(f"Input '{input_name}' not found in frame_inputs for screen '{screen_name}'")
+                    continue
+                source_path = frame_input["path"]
+                display_name = screen_config["name"]
+                fps = DISPLAY_SETTINGS.get(display_name, {}).get("fps", 30)
+                try:
+                    # Load the image from the source path
+                    current_image = Image.open(source_path).convert("RGB")
+                except (FileNotFoundError, IOError, Image.UnidentifiedImageError, SyntaxError) as e:
+                    current_image = last_frames.get(screen_name)
+                if current_image:
+                    self.show_image(current_image, screen_name)
+                    last_frames[screen_name] = current_image
+                time.sleep(1 / fps)
 
 if __name__ == "__main__":
-    from PIL import ImageDraw
     import os
-    import time
     CONFIG = os.path.join(os.path.dirname(__file__), 'config.yaml')
     display_manager = DisplayManager(CONFIG)
-    img = Image.new("RGB", (320, 480), "white")
-    draw = ImageDraw.Draw(img)
-    draw.text((100, 100), "Hello, Screen1!", fill="black")
-    display_manager.show_image(img, "screen1")
-
-    # Create another image for screen2
-#    img2 = Image.new("RGB", (128, 64), "white")
-#    draw2 = ImageDraw.Draw(img2)
-#    draw2.text((10, 20), "Hello, Screen2!", fill="black")
-
-    # Show the image on screen2
-#    display_manager.show_image(img2, "screen2")
-
-    print("Images displayed successfully.")
-    time.sleep(10)
-    print("Clearing displays...")
+    main_loop = Thread(target=display_manager.run_display_cycle, daemon=True)
+    main_loop.start()
+    input("Press Enter to stop...\n")
+    print("Exiting.")
