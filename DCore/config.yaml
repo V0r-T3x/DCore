@@ -11,6 +11,7 @@ screens:
 frame_inputs:
   input1:
     type: "retrieved" # or "received"
+    mode: "image"
     name: "pwnagotchi"
     path: "/var/tmp/pwnagotchi/pwnagotchi.png"
 
