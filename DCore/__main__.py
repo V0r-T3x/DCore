@@ -4,6 +4,7 @@ from importlib import import_module
 from PIL import Image
 from threading import Thread
 import time
+import RPi.GPIO as GPIO
 
 class DisplayManager:
     def __init__(self, config_file):
@@ -34,10 +35,19 @@ class DisplayManager:
             screens[screen_name] = self.init_display(settings)
         return screens
 
+    def set_backlight(self, pin=24, enable=True):
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, GPIO.LOW)
+        time.sleep(0.1)
+        if enable:
+            GPIO.output(pin, GPIO.HIGH)
+
+
     def init_display(self, settings):
         """Initialize a single display based on the provided settings."""
         driver_module = settings["driver"]
         driver_class = settings["class"]
+        pins = settings["pins"]
         target_width = settings["width"]
         target_height = settings["height"]
         if driver_module == "waveshare_epd":
@@ -47,10 +57,15 @@ class DisplayManager:
             luma_device = import_module(f"{driver_module}.device")
             serial = self.init_serial_interface(settings)
             display = getattr(luma_device, driver_class)(serial, width=target_width, height=target_height, rotate=settings.get("rotate", 0))
+            
+            if pins.get("backlight", 24):
+                self.set_backlight(pins["backlight"])
+            
             if settings.get("bgr", False):
                 display.command(0x36, 0x40)  # Set the BGR mode
             if settings.get("invert", False):
                 display.command(0x21)  # Enable invert color
+
             else:
                 display.command(0x20)  # Disable invert color
             return display
