@@ -16,20 +16,9 @@ git clone https://github.com/V0r-T3x/DCore.git DCore-repo
 ```
 cd /home/pi/DCore-repo/scripts/
 ```
-- Make the scripts executable and run the install script.
-  - This will create the python venv in `/home/pi/DCore`
-```
-chmod +x install.sh
-chmod +x setup.sh
-./install.sh
-```
-- Activate the python venv.
-```
-source /home/pi/DCore/bin/act*
-```
 - Configure DCore with the rigth screens and inputs.
 ```
-nano /home/pi/DCore/lib/python3.11/site-packages/DCore/config.yaml
+nano ../DCore/config.yaml
 ```
 - Configuration file exemple:
 ```
@@ -45,7 +34,9 @@ frame_inputs:
     name: "pwnagotchi"
     path: "/var/tmp/pwnagotchi/pwnagotchi.png"
 ```
-- Starting DCore.
+- Make the scripts executable and run the install script.
+  - This will create the python venv in `/home/pi/DCore`
 ```
-python3 -m DCore
+chmod +x install.sh
+./install.sh
 ```
