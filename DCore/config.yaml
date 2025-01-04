@@ -1,6 +1,6 @@
 screens:
   screen1:
-    name: "wavesharev2"#"displayhatmini" #"waveshare_3.5_clone"
+    name: "luma_oled_spi_128x64"#"wavesharev2"#"displayhatmini" #"waveshare_3.5_clone"
     #spi_port: 0
     default_input: input1
 
