@@ -8,6 +8,20 @@ DISPLAY_SETTINGS = {
         "height": 122,
         "pins": {},
     },
+    "wavesharev3": {
+        "driver": "waveshare_epd",
+        "class": "epd2in13_V3",
+        "width": 250,
+        "height": 122,
+        "pins": {},
+    },
+    "wavesharev4": {
+        "driver": "waveshare_epd",
+        "class": "epd2in13_V4",
+        "width": 250,
+        "height": 122,
+        "pins": {},
+    },
     "luma_oled_128x64": {
         "driver": "luma.oled",
         "class": "ssd1306",
