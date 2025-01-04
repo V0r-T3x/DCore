@@ -9,20 +9,9 @@ import DCore.log as Log
 
 class DisplayManager:
     def __init__(self, config_file):
-        self.default_pins = {
-            "reset": 17,
-            "dc": 25,
-            "cs": 8,
-            "busy": 24,
-            "pwr": 18,
-            "mosi": 10,
-            "sck": 11,
-            "backlight": None,
-        }
         self.config = self.load_config(config_file)
         self.screens = self.init_screens()
         self.inputs = self.init_inputs()
-        
 
     def load_config(self, config_file):
         """Load the display configuration from a YAML file."""
@@ -60,23 +49,17 @@ class DisplayManager:
         """Initialize a single display based on the provided settings."""
         driver_module = settings["driver"]
         driver_class = settings["class"]
-        pins = self.default_pins
-        pins = settings.get("pins")
+        pins = settings["pins"]
         target_width = settings["width"]
         target_height = settings["height"]
         if driver_module == "waveshare_epd":
             epd_module = import_module(f"waveshare_epd.{driver_class}")
             epd = epd_module.EPD()
-            if epd.FULL_UPDATE:
-                epd.init(epd.FULL_UPDATE)
-                epd.Clear(0xff)
-                epd.init(epd.PART_UPDATE)
-                print(dir(epd))
-                print(type(epd))
-            else:
-                epd.init(epd.FULL_UPDATE)
-                epd.Clear(0xff)
-                epd.init(update=True)
+            epd.init(epd.FULL_UPDATE)
+            epd.Clear(0xff)
+            epd.init(epd.PART_UPDATE)
+            print(dir(epd))
+            print(type(epd))
             return epd
         elif driver_module.startswith("luma."):
             luma_device = import_module(f"{driver_module}.device")
@@ -104,9 +87,9 @@ class DisplayManager:
             return i2c(address=settings.get("address", 0x3C))
         elif interface == "spi":
             from luma.core.interface.serial import spi
-            pins = settings.get("pins", {})
+            pins = settings["pins"]
             return spi(port=settings.get("spi_port", 0), device=pins.get("cs", 0),
-                       gpio_DC=pins.get("dc", 25), gpio_RST=pins.get("reset"),
+                       gpio_DC=pins["dc"], gpio_RST=pins.get("reset"),
                        spi_speed_hz=settings.get("spi_speed_hz", 8000000))
         else:
             raise ValueError(f"Unsupported interface: {interface}")
