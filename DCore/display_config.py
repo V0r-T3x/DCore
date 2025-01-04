@@ -1,17 +1,12 @@
 # display_config.py
 
 DISPLAY_SETTINGS = {
-    "waveshare_epd_2in13": {
+    "wavesharev2": {
         "driver": "waveshare_epd",
-        "class": "EPD_2in13",
+        "class": "epd2in13_V2",
         "width": 250,
         "height": 122,
-        "pins": {
-            "cs": 8, 
-            "dc": 25, 
-            "reset": 17, 
-            "busy": 24
-        },
+        "pins": {},
     },
     "luma_oled_128x64": {
         "driver": "luma.oled",
@@ -56,10 +51,6 @@ DISPLAY_SETTINGS = {
         "class": "st7789",
         "width": 320,
         "height": 240,
-        "rotate": 0,
-        "bgr": False,
-        "invert": True,
-        "horizontal_flip": False,
         "pins": {
             "dc": 9, 
             "cs": 1,
@@ -70,7 +61,6 @@ DISPLAY_SETTINGS = {
         "spi_port": 0,
         "spi_device": 0,
         "fps": 60,
-        "mode": "RGBA",
     },
     "waveshare_3.5_clone": {
         "driver": "luma.lcd",
@@ -79,7 +69,7 @@ DISPLAY_SETTINGS = {
         "height": 480,
         "rotate": 1,
         "bgr": False,
-        "invert": False,
+        "inverse": False,
         "horizontal_flip": True,
         "pins": {
             "dc": 24,
@@ -91,6 +81,5 @@ DISPLAY_SETTINGS = {
         "spi_port": 0,
         "spi_device": 0,
         "fps": 60,
-        "mode": "RGB",
     },
 }

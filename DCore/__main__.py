@@ -5,6 +5,7 @@ from PIL import Image
 from threading import Thread
 import time
 import RPi.GPIO as GPIO
+import DCore.log as Log
 
 class DisplayManager:
     def __init__(self, config_file):
@@ -20,8 +21,8 @@ class DisplayManager:
     def init_inputs(self):
         """Initialize input sources for frames."""
         inputs = {}
-        for input_name, input_config in self.config["frame_inputs"].items():  # Changed "inputs" to "frame_inputs"
-            inputs[input_name] = input_config["path"]  # Assuming "path" is the key for the source
+        for input_name, input_config in self.config["frame_inputs"].items():
+            inputs[input_name] = input_config["path"]
         return inputs
 
     def init_screens(self):
@@ -44,6 +45,7 @@ class DisplayManager:
 
 
     def init_display(self, settings):
+
         """Initialize a single display based on the provided settings."""
         driver_module = settings["driver"]
         driver_class = settings["class"]
@@ -52,7 +54,13 @@ class DisplayManager:
         target_height = settings["height"]
         if driver_module == "waveshare_epd":
             epd_module = import_module(f"waveshare_epd.{driver_class}")
-            return epd_module.EPD()
+            epd = epd_module.EPD()
+            epd.init(epd.FULL_UPDATE)
+            epd.Clear(0xff)
+            epd.init(epd.PART_UPDATE)
+            print(dir(epd))
+            print(type(epd))
+            return epd
         elif driver_module.startswith("luma."):
             luma_device = import_module(f"{driver_module}.device")
             serial = self.init_serial_interface(settings)
@@ -72,7 +80,6 @@ class DisplayManager:
 
     def init_serial_interface(self, settings):
         """Initialize SPI or I2C serial interface based on display settings."""
-        #print(f"Initializing serial interface for {settings['name']}")
         print(f"Settings: {settings}")
         interface = settings["interface"]
         if interface == "i2c":
@@ -102,7 +109,7 @@ class DisplayManager:
     def _clear_display(self, display):
         """Helper to clear a specific display."""
         if hasattr(display, "Clear"):  # For Waveshare EPD
-            display.Clear()
+            display.Clear(0xff)
         elif hasattr(display, "clear"):  # For Luma OLED/LCD
             display.clear()
         else:
@@ -120,11 +127,17 @@ class DisplayManager:
         target_height = settings.get("height", image.height)
         target_mode = settings.get("mode", "RGB")
         resized_image = image.resize((target_width, target_height))
+        epd = display.__class__.__name__.startswith("EPD")
 
         if settings.get("horizontal_flip", False):
             resized_image = resized_image.transpose(Image.FLIP_LEFT_RIGHT)
-        if display.__class__.__name__.startswith("EPD"):
-            resized_image = resized_image.convert(self.settings.get("mode", "1"))
+
+        if epd:
+            resized_image.save('/home/pi/epd_converted_image2.jpg')
+            print(resized_image)
+            buffer = display.getbuffer(resized_image)
+            display.Clear(0xff)
+            resized_image = buffer
         if hasattr(display, "display"):
             display.display(resized_image)
         elif hasattr(display, "show"):
@@ -137,10 +150,7 @@ class DisplayManager:
         last_frames = {screen: None for screen in self.screens}
         while True:
             for screen_name, screen_config in self.config["screens"].items():
-                #print(f"Running display cycle for screen '{screen_name}'")
                 settings = DISPLAY_SETTINGS.get(screen_config['name'], {})
-                #print(f"Settings for screen '{screen_config['name']}': {settings}")
-                # Get the input associated with this screen
                 input_name = screen_config.get("default_input")
                 if not input_name:
                     print(f"No default_input defined for screen '{screen_name}'")
@@ -153,7 +163,6 @@ class DisplayManager:
                 display_name = screen_config["name"]
                 fps = DISPLAY_SETTINGS.get(screen_config['name'], {}).get("fps", 30)
                 try:
-                    # Load the image from the source path
                     current_image = Image.open(source_path).convert(settings.get("mode", "RGB"))
                 except (FileNotFoundError, IOError, Image.UnidentifiedImageError, SyntaxError) as e:
                     current_image = last_frames.get(screen_name)

@@ -1,7 +1,7 @@
 screens:
   screen1:
-    name: "displayhatmini" #"waveshare_3.5_clone"
-    spi_port: 0
+    name: "wavesharev2"#"displayhatmini" #"waveshare_3.5_clone"
+    #spi_port: 0
     default_input: input1
 
 #  screen2:
@@ -19,3 +19,4 @@ frame_inputs:
 #    type: "retrieved" # or "received"
 #    name: "terminal"
 #    path: "fb0"
+
