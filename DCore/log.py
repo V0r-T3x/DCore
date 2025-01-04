@@ -2,7 +2,7 @@ import logging
 import os
 
 # Configure the logging
-LOG_DIR = "/var/log/DCore"  # Directory for log files
+LOG_DIR = "~/.DCore-logs"  # Directory for log files
 os.makedirs(LOG_DIR, exist_ok=True)  # Ensure the directory exists
 
 LOG_FILE = os.path.join(LOG_DIR, "dcore.log")
