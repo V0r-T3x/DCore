@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Exit on errors
 set -e
@@ -40,6 +40,7 @@ rsync -av --exclude 'scripts' --exclude 'LICENSE' --exclude 'README.md' \
 
 # Step 5: Run the setup script
 echo "Running the setup script..."
+cd ${SCRIPT_DIR}
 chmod +x setup.sh
 ./setup.sh
 
