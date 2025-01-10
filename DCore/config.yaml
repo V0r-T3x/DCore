@@ -1,6 +1,23 @@
+# Available screens:
+#-------------------
+# Waveshare_epd:
+#   wavesharev2
+#   wavesharev3
+#   wavesharev4
+# 
+# Luma.oled:
+#   luma_oled_spi_128x64
+# 
+# Luma.lcd:
+#   displayhatmini
+#   waveshare_3.5_clone
+#   gamepi_1.5_lcd
+# 
+# 
+
 screens:
   screen1:
-    name: "luma_oled_spi_128x64"#"wavesharev2"#"displayhatmini" #"waveshare_3.5_clone"
+    name: "luma_oled_spi_128x64"
     #spi_port: 0
     default_input: input1
 
