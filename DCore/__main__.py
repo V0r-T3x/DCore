@@ -1,3 +1,6 @@
+# Microservice idea:
+# https://github.com/OnurYilmazGit/-Paper-Module-RaspberryPi-Services-Fork-
+
 from DCore.display_config import DISPLAY_SETTINGS
 import yaml
 from importlib import import_module
@@ -57,7 +60,6 @@ class DisplayManager:
 
 
     def init_display(self, settings):
-
         """Initialize a single display based on the provided settings."""
         driver_module = settings["driver"]
         driver_class = settings["class"]
@@ -72,8 +74,6 @@ class DisplayManager:
         bgr = settings.get("bgr", False)
         inverse = settings.get("inverse", False)
         invert = settings.get("invert", False)
-        
-
         if driver_module == "waveshare_epd":
             epd_module = import_module(f"waveshare_epd.{driver_class}")
             epd = epd_module.EPD()
@@ -90,7 +90,8 @@ class DisplayManager:
                     sys.stdout.flush()
                     image = Image.new('1', (epd.width, epd.height), 255)
                     epd.smart_update(image)
-                #epd.Clear(0xff)
+                if hasattr(epd, "Clear"):
+                    epd.Clear(0xff)
             sys.stdout.flush()
             return epd
         elif driver_module.startswith("luma."):
@@ -117,7 +118,6 @@ class DisplayManager:
         print(f"Settings: {settings}")
         interface = settings["interface"]
         port = settings.get("port", 0)
-
         if interface == "i2c":
             from luma.core.interface.serial import i2c
             return i2c(address=settings.get("address", 0x3C))
@@ -166,15 +166,10 @@ class DisplayManager:
         width = settings.get("width", image.width)
         height = settings.get("height", image.height)
         target_mode = settings.get("mode", "RGB")
-        
-        
-        
         epd = display.__class__.__name__.startswith("EPD")
         if settings.get("inverse", False):
             image = image.transpose(Image.FLIP_LEFT_RIGHT)
-
         if epd:
-            
             rotate = settings.get("rotate", 0)
             if rotate == 1:
                 image = image.rotate(90, expand=True)
@@ -196,10 +191,10 @@ class DisplayManager:
                 #return
         else:
             resized_image = image.resize((width, height)).convert(target_mode)
-            
-            #resized_image = buffer
         if hasattr(display, "display"):
             display.display(resized_image)
+            #if hasattr(display, "PART_UPDATE"):
+            #    device.PART_UPDATE
         elif hasattr(display, "show"):
             display.show(resized_image)
         #elif hasattr(display, "smart_update"):

@@ -1,6 +1,7 @@
 # display_config.py
 
 DISPLAY_SETTINGS = {
+    # E-papers
     "waveshare_1.3_v2": {
         "driver": "waveshare_epd",
         "class": "epd2in13_V2",
@@ -29,6 +30,17 @@ DISPLAY_SETTINGS = {
         "width": 264,
         "height": 176,
     },
+    # Waveshare 2.7" with partial refresh
+    # https://github.com/elad661/rpi_epd2in7
+    "waveshare_2.7a": {
+        "driver": "waveshare_epd",
+        "class": "epd2in7a",
+        "mode": "1",
+        "rotate": 1,
+        "width": 176,
+        "height": 264,
+    },
+    # OLED
     "luma_oled_spi_128x64": {
         "driver": "luma.oled",
         "class": "sh1106",
@@ -50,6 +62,7 @@ DISPLAY_SETTINGS = {
         "spi_speed_hz": 8000000,
         "fps": 20,
     },
+    # LCD
     "gamepi_1.3_lcd": {
         "driver": "luma.lcd",
         "class": "st7789",
@@ -200,14 +213,6 @@ DISPLAY_SETTINGS = {
     },
 
     # Tests:
-    # https://github.com/elad661/rpi_epd2in7
-    "waveshare_2.7a": {
-        "driver": "waveshare_epd",
-        "class": "epd2in7a",
-        "mode": "1",
-        "rotate": 1,
-        "width": 176,
-        "height": 264,
-    },
+    
 
 }
