@@ -11,13 +11,16 @@
 # Luma.lcd:
 #   displayhatmini
 #   waveshare_3.5_clone
+#   gamepi_1.3_lcd
 #   gamepi_1.5_lcd
-# 
+#   gamepi_1.44_lcd
+#   gamepi_1.54_lcd
+#   gamepi_2.0_lcd
 # 
 
 screens:
   screen1:
-    name: "luma_oled_spi_128x64"
+    name: "gamepi_1.3_lcd"
     #spi_port: 0
     default_input: input1
 

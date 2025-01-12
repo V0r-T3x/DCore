@@ -61,9 +61,18 @@ class DisplayManager:
         driver_module = settings["driver"]
         driver_class = settings["class"]
         pins = self.default_pins
-        pins = settings.get("pins")
-        target_width = settings["width"]
-        target_height = settings["height"]
+        pins = settings.get("pins", {})
+        width = settings["width"]
+        height = settings["height"]
+        rotate = settings.get("rotate", 0)
+        framebuffer = settings.get("framebuffer", None)
+        h_offset = settings.get("h_offset", 0)
+        v_offset = settings.get("v_offset", 0)
+        bgr = settings.get("bgr", False)
+        inverse = settings.get("inverse", False)
+        invert = settings.get("invert", False)
+        
+
         if driver_module == "waveshare_epd":
             epd_module = import_module(f"waveshare_epd.{driver_class}")
             epd = epd_module.EPD()
@@ -80,17 +89,19 @@ class DisplayManager:
             return epd
         elif driver_module.startswith("luma."):
             luma_device = import_module(f"{driver_module}.device")
-            serial = self.init_serial_interface(settings)
-            display = getattr(luma_device, driver_class)(serial, width=target_width, height=target_height, rotate=settings.get("rotate", 0))
+            serial_interface = self.init_serial_interface(settings)
+            display = getattr(luma_device, driver_class)(serial_interface=serial_interface, 
+                width=width, height=height, rotate=rotate, 
+                framebuffer=framebuffer, h_offset=h_offset, v_offset=v_offset,
+                bgr=bgr, inverse=inverse, invert=invert)
             
             if pins.get("backlight", 24):
-                self.set_backlight(pins["backlight"])
+                self.set_backlight(pins.get("backlight", 24))
             
-            if settings.get("bgr", False):
-                display.command(0x36, 0x40)  # Set the BGR mode
+            #if settings.get("bgr", False):
+            #    display.command(0x36, 0x40)  # Set the BGR mode
             if settings.get("invert", False):
                 display.command(0x21)  # Enable invert color
-
             else:
                 display.command(0x20)  # Disable invert color
             return display
@@ -99,15 +110,21 @@ class DisplayManager:
         """Initialize SPI or I2C serial interface based on display settings."""
         print(f"Settings: {settings}")
         interface = settings["interface"]
+        port = settings.get("port", 0)
+
         if interface == "i2c":
             from luma.core.interface.serial import i2c
             return i2c(address=settings.get("address", 0x3C))
         elif interface == "spi":
             from luma.core.interface.serial import spi
             pins = settings.get("pins", {})
-            return spi(port=settings.get("spi_port", 0), device=pins.get("cs", 0),
-                       gpio_DC=pins.get("dc", 25), gpio_RST=pins.get("reset"),
-                       spi_speed_hz=settings.get("spi_speed_hz", 8000000))
+            port = settings.get("spiport", 0)
+            dc = pins.get("dc", 25)
+            device = settings.get("spi_device", 0)
+            rst = pins.get("reset", 27)
+            speed = settings.get("spi_speed_hz", 8000000)
+            Log.log_event(f"Using SPI interface with pins: port={port}, dc={dc}, device={device}, rst={rst}, speed={speed}")
+            return spi(port=port, device=device, gpio_DC=dc, gpio_RST=rst, spi_speed_hz=speed)
         else:
             raise ValueError(f"Unsupported interface: {interface}")
 
@@ -143,10 +160,10 @@ class DisplayManager:
         target_width = settings.get("width", image.width)
         target_height = settings.get("height", image.height)
         target_mode = settings.get("mode", "RGB")
-        resized_image = image.resize((target_width, target_height))
+        resized_image = image.resize((target_width, target_height)).convert(target_mode)
         epd = display.__class__.__name__.startswith("EPD")
 
-        if settings.get("horizontal_flip", False):
+        if settings.get("inverse", False):
             resized_image = resized_image.transpose(Image.FLIP_LEFT_RIGHT)
 
         if epd:
