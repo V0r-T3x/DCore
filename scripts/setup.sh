@@ -16,7 +16,7 @@ pip install spidev RPi.GPIO pillow luma.oled luma.lcd luma.core pyyaml gpiozero 
 # Step 3: Clone Waveshare e-Paper repository
 if [ ! -d "e-Paper" ]; then
     echo "Cloning Waveshare e-Paper repository..."
-    git clone https://github.com/waveshare/e-Paper.git
+    git clone https://github.com/V0r-T3x/e-Paper.git
 fi
 
 # Step 4: Create and run custom setup.py script

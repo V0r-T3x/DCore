@@ -4,25 +4,28 @@ DISPLAY_SETTINGS = {
     "waveshare_1.3_v2": {
         "driver": "waveshare_epd",
         "class": "epd2in13_V2",
+        "mode": "1",
         "width": 250,
         "height": 122,
     },
     "waveshare_1.3_v3": {
         "driver": "waveshare_epd",
         "class": "epd2in13_V3",
+        "mode": "1",
         "width": 250,
         "height": 122,
     },
     "waveshare_1.3_v4": {
         "driver": "waveshare_epd",
         "class": "epd2in13_V4",
+        "mode": "1",
         "width": 250,
         "height": 122,
     },
-    "waveshare_2.7_v2": {
+    "waveshare_2.7": {
         "driver": "waveshare_epd",
         "class": "epd2in7",
-        "mode": "L",
+        "mode": "1",
         "width": 264,
         "height": 176,
     },
@@ -47,12 +50,13 @@ DISPLAY_SETTINGS = {
         "spi_speed_hz": 8000000,
         "fps": 20,
     },
-    "gamepi_1.5_lcd": {
+    "gamepi_1.3_lcd": {
         "driver": "luma.lcd",
         "class": "st7789",
         "width": 240,
         "height": 240,
-        "rotate": 1,
+        "rotate": 0,
+        "mode": "RGB",
         "pins": {
             "dc": 25, 
             "reset": 27,
@@ -68,12 +72,33 @@ DISPLAY_SETTINGS = {
         "fps": 60,
         "invert": True,
     },
-    "gamepi_1.3_lcd": {
+    "gamepi_1.44_lcd": {
+        "driver": "luma.lcd",
+        "class": "st7789",
+        "width": 128,
+        "height": 128,
+        "mode": "RGB",
+        "pins": {
+            "dc": 25, 
+            "reset": 27,
+            "cs": 8,
+            "sck": 11,
+            "mosi": 10,
+            "backlight": 24,
+        },
+        "interface": "spi",
+        "spi_speed_hz": 16000000,
+        "spi_port": 0,
+        "spi_device": 0,
+        "fps": 60,
+    },
+    "gamepi_1.5_lcd": {
         "driver": "luma.lcd",
         "class": "st7789",
         "width": 240,
         "height": 240,
-        "rotate": 0,
+        "rotate": 1,
+        "mode": "RGB",
         "pins": {
             "dc": 25, 
             "reset": 27,
@@ -134,25 +159,6 @@ DISPLAY_SETTINGS = {
         "fps": 60,
         "invert": True,
     },
-    "gamepi_1.44_lcd": {
-        "driver": "luma.lcd",
-        "class": "st7789",
-        "width": 128,
-        "height": 128,
-        "pins": {
-            "dc": 25, 
-            "reset": 27,
-            "cs": 8,
-            "sck": 11,
-            "mosi": 10,
-            "backlight": 24,
-        },
-        "interface": "spi",
-        "spi_speed_hz": 16000000,
-        "spi_port": 0,
-        "spi_device": 0,
-        "fps": 60,
-    },
     "displayhatmini": {
         "driver": "luma.lcd",
         "class": "st7789",
@@ -192,4 +198,16 @@ DISPLAY_SETTINGS = {
         "spi_device": 0,
         "fps": 60,
     },
+
+    # Tests:
+    # https://github.com/elad661/rpi_epd2in7
+    "waveshare_2.7a": {
+        "driver": "waveshare_epd",
+        "class": "epd2in7a",
+        "mode": "1",
+        "rotate": 1,
+        "width": 176,
+        "height": 264,
+    },
+
 }

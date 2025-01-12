@@ -1,26 +1,28 @@
 # Available screens:
 #-------------------
 # Waveshare_epd:
-#   wavesharev2
-#   wavesharev3
-#   wavesharev4
+#   waveshare_1.3_v2
+#   waveshare_1.3_v3
+#   waveshare_1.3_v4
+#   waveshare_2.7
+#   waveshare_2.7a (partial refresh)
 # 
 # Luma.oled:
 #   luma_oled_spi_128x64
 # 
 # Luma.lcd:
-#   displayhatmini
-#   waveshare_3.5_clone
 #   gamepi_1.3_lcd
 #   gamepi_1.5_lcd
 #   gamepi_1.44_lcd
 #   gamepi_1.54_lcd
 #   gamepi_2.0_lcd
+#   displayhatmini
+#   waveshare_3.5_clone
 # 
 
 screens:
   screen1:
-    name: "gamepi_1.3_lcd"
+    name: "displayhatmini"
     #spi_port: 0
     default_input: input1
 

@@ -6,6 +6,7 @@ from threading import Thread
 import time
 import RPi.GPIO as GPIO
 import DCore.log as Log
+import sys
 
 class DisplayManager:
     def __init__(self, config_file):
@@ -76,16 +77,21 @@ class DisplayManager:
         if driver_module == "waveshare_epd":
             epd_module = import_module(f"waveshare_epd.{driver_class}")
             epd = epd_module.EPD()
-            if epd.FULL_UPDATE:
+            if hasattr(epd, 'FULL_UPDATE'):
                 epd.init(epd.FULL_UPDATE)
                 epd.Clear(0xff)
                 epd.init(epd.PART_UPDATE)
                 print(dir(epd))
                 print(type(epd))
             else:
-                epd.init(epd.FULL_UPDATE)
-                epd.Clear(0xff)
-                epd.init(update=True)
+                epd.init()
+                if hasattr(epd, "smart_update"):
+                    print("Smart update")
+                    sys.stdout.flush()
+                    image = Image.new('1', (epd.width, epd.height), 255)
+                    epd.smart_update(image)
+                #epd.Clear(0xff)
+            sys.stdout.flush()
             return epd
         elif driver_module.startswith("luma."):
             luma_device = import_module(f"{driver_module}.device")
@@ -157,25 +163,56 @@ class DisplayManager:
             return
         display_name = self.config["screens"][screen_name]["name"]
         settings = DISPLAY_SETTINGS.get(display_name, {})
-        target_width = settings.get("width", image.width)
-        target_height = settings.get("height", image.height)
+        width = settings.get("width", image.width)
+        height = settings.get("height", image.height)
         target_mode = settings.get("mode", "RGB")
-        resized_image = image.resize((target_width, target_height)).convert(target_mode)
+        
+        
+        
         epd = display.__class__.__name__.startswith("EPD")
-
         if settings.get("inverse", False):
-            resized_image = resized_image.transpose(Image.FLIP_LEFT_RIGHT)
+            image = image.transpose(Image.FLIP_LEFT_RIGHT)
 
         if epd:
-            resized_image.save('/home/pi/epd_converted_image2.jpg')
+            
+            rotate = settings.get("rotate", 0)
+            if rotate == 1:
+                image = image.rotate(90, expand=True)
+            elif rotate == 2:
+                image = image.rotate(180, expand=True)
+            elif rotate == 3:
+                image = image.rotate(270, expand=True)
+            resized_image = image.resize((width, height)).convert(target_mode)
             print(resized_image)
-            buffer = display.getbuffer(resized_image)
-            display.Clear(0xff)
-            resized_image = buffer
+            if hasattr(display, "getbuffer"):
+                buffer = display.getbuffer(resized_image)
+                display.Clear(0xff)
+                resized_image = buffer
+            #if hasattr(display, "_get_frame_buffer"):
+            #    buffer = display._get_frame_buffer(resized_image)
+            #    resized_image = buffer
+            else:
+                print("Warning: Display getbuffer method not supported for this screen.")
+                #return
+        else:
+            resized_image = image.resize((width, height)).convert(target_mode)
+            
+            #resized_image = buffer
         if hasattr(display, "display"):
             display.display(resized_image)
         elif hasattr(display, "show"):
             display.show(resized_image)
+        #elif hasattr(display, "smart_update"):
+        #    print("Smart update")
+        #    display.smart_update(resized_image)
+        #    sys.stdout.flush()
+        #elif hasattr(display, "display_frame"):
+        #    print("Display frame")
+        #    display.display_frame(resized_image)
+        elif hasattr(display, "display_partial_frame"):
+            print("Display partial frame")
+            loc = 25
+            display.display_partial_frame(resized_image, 0, 0, display.height, display.width, fast=True)
         else:
             print("Warning: Display method not supported for this screen.")
 
