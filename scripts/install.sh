@@ -8,6 +8,8 @@ PROJECT_NAME="DCore"
 # Define default venv path if no argument is provided
 VENV_DIR="${1:-/home/pi/DCore}"
 
+
+
 # Script folder
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 # Get the parent directory of the script
@@ -17,6 +19,41 @@ REPO_DIR="${PARENT_DIR}/${PROJECT_NAME}"
 
 PYTHON_VERSION="python3.11"
 VENV_PYTHON_SITE_PACKAGES="${VENV_DIR}/lib/${PYTHON_VERSION}/site-packages/${PROJECT_NAME}"
+
+# Function to enable interfaces if needed
+enable_interface() {
+    local interface=$1
+    if ! raspi-config nonint get_$interface; then
+        echo "Enabling $interface..."
+        sudo raspi-config nonint do_$interface 0
+        echo "$interface enabled."
+        return 0
+    else
+        echo "$interface is already enabled."
+        return 1
+    fi
+}
+
+# Verify and enable specified interfaces if needed
+reboot_required=false
+
+for interface in "${NEEDED_INTERFACES[@]}"; do
+    if [[ "$interface" == "hdmi" ]]; then
+        # Check if HDMI is forced on in /boot/config.txt
+        if ! grep -q "^hdmi_force_hotplug=1" /boot/config.txt; then
+            echo "Forcing HDMI output by updating /boot/config.txt..."
+            sudo sed -i '/^#*hdmi_force_hotplug=/d' /boot/config.txt
+            echo "hdmi_force_hotplug=1" | sudo tee -a /boot/config.txt
+            reboot_required=true
+        else
+            echo "HDMI is already configured in /boot/config.txt."
+        fi
+    else
+        if enable_interface "$interface"; then
+            reboot_required=true
+        fi
+    fi
+done
 
 # Step 1: Update and install system-level dependencies
 echo "Updating system and installing dependencies..."
@@ -93,3 +130,9 @@ sudo systemctl start ${PROJECT_NAME}.service
 
 # Step 8: Clean up and finalize
 echo "Setup and service installation completed successfully!"
+
+if $reboot_required; then
+    echo "System changes require a reboot. Rebooting now..."
+    sudo reboot
+fi
+
