@@ -8,7 +8,7 @@ PROJECT_NAME="DCore"
 # Define default venv path if no argument is provided
 VENV_DIR="${1:-/home/pi/DCore}"
 
-
+NEEDED_INTERFACES=('spi', 'i2c', 'hdmi')
 
 # Script folder
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
@@ -39,14 +39,14 @@ reboot_required=false
 
 for interface in "${NEEDED_INTERFACES[@]}"; do
     if [[ "$interface" == "hdmi" ]]; then
-        # Check if HDMI is forced on in /boot/config.txt
-        if ! grep -q "^hdmi_force_hotplug=1" /boot/config.txt; then
-            echo "Forcing HDMI output by updating /boot/config.txt..."
-            sudo sed -i '/^#*hdmi_force_hotplug=/d' /boot/config.txt
-            echo "hdmi_force_hotplug=1" | sudo tee -a /boot/config.txt
+        # Check if HDMI is forced on in /boot/firmware/config.txt
+        if ! grep -q "^hdmi_force_hotplug=1" /boot/firmware/config.txt; then
+            echo "Forcing HDMI output by updating /boot/firmware/config.txt..."
+            sudo sed -i '/^#*hdmi_force_hotplug=/d' /boot/firmware/config.txt
+            echo "hdmi_force_hotplug=1" | sudo tee -a /boot/firmware/config.txt
             reboot_required=true
         else
-            echo "HDMI is already configured in /boot/config.txt."
+            echo "HDMI is already configured in /boot/firmware/config.txt."
         fi
     else
         if enable_interface "$interface"; then

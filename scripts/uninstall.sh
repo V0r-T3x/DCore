@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Default venv folder
 DEFAULT_VENV="/home/pi/DCore"
@@ -7,7 +7,7 @@ DEFAULT_VENV="/home/pi/DCore"
 VENV_FOLDER=${1:-$DEFAULT_VENV}
 
 # Service name
-SERVICE_NAME="dcore.service"
+SERVICE_NAME="DCore.service"
 
 echo "Starting uninstallation..."
 
