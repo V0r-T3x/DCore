@@ -155,6 +155,43 @@ class DisplayManager:
         else:
             print("Warning: Clear method not supported for this display.")
 
+    def tricolor(self, image, save_path="/home/pi"):
+        # Convert the image to grayscale
+        grayscale = image.convert('L')
+
+        # Create black-and-white image (black for dark, white for light or mid-tones)
+        img_bw = Image.new('1', image.size, color=255)  # Start with white
+        bw_pixels = img_bw.load()
+
+        # Create red-and-white image (red for mid-tones, white for others)
+        img_rw = Image.new('RGB', image.size, color=(255, 255, 255))  # Start with white
+        rw_pixels = img_rw.load()
+
+        for y in range(image.size[1]):
+            for x in range(image.size[0]):
+                gray_pixel = grayscale.getpixel((x, y))
+
+                # Set red-and-white pixel
+                if 85 <= gray_pixel <= 170:  # Middle gray range becomes red
+                    rw_pixels[x, y] = 0
+                    bw_pixels[x, y] = 255  # Ensure corresponding part is white in black-and-white
+                elif gray_pixel < 85:  # Dark areas become black
+                    bw_pixels[x, y] = 0  # Black in black-and-white
+                else:  # Light areas
+                    bw_pixels[x, y] = 255  # White in black-and-white
+
+        # Save black-and-white image
+        #img_bw_path = f"{save_path}/output_black_and_white.png"
+        #img_bw.save(img_bw_path)
+
+        # Save red-and-white image
+        #img_rw_path = f"{save_path}/output_red_and_white.png"
+        #img_rw.save(img_rw_path)
+
+        # Return the images for further processing if needed
+        return img_bw, img_rw
+
+
     def show_image(self, image, screen_name):
         """Display an image on the specified screen."""
         display = self.screens.get(screen_name)
@@ -177,12 +214,20 @@ class DisplayManager:
                 image = image.rotate(180, expand=True)
             elif rotate == 3:
                 image = image.rotate(270, expand=True)
-            resized_image = image.resize((width, height)).convert(target_mode)
-            print(resized_image)
+            if target_mode == "3":
+                resized_image = image.resize((width, height), Image.NEAREST)
+                img_bw, img_rw = self.tricolor(resized_image)
+            else:
+                resized_image = image.resize((width, height)).convert(target_mode)
+
             if hasattr(display, "getbuffer"):
-                buffer = display.getbuffer(resized_image)
-                display.Clear(0xff)
-                resized_image = buffer
+                if target_mode != "3":
+                    buffer = display.getbuffer(resized_image)
+                    display.Clear(0xff)
+                    resized_image = buffer
+                else:
+                    img_bw = display.getbuffer(img_bw)
+                    img_rw = display.getbuffer(img_rw)
             #if hasattr(display, "_get_frame_buffer"):
             #    buffer = display._get_frame_buffer(resized_image)
             #    resized_image = buffer
@@ -191,25 +236,37 @@ class DisplayManager:
                 #return
         else:
             resized_image = image.resize((width, height)).convert(target_mode)
-        if hasattr(display, "display"):
-            display.display(resized_image)
-            #if hasattr(display, "PART_UPDATE"):
-            #    device.PART_UPDATE
-        elif hasattr(display, "show"):
-            display.show(resized_image)
-        #elif hasattr(display, "smart_update"):
-        #    print("Smart update")
-        #    display.smart_update(resized_image)
-        #    sys.stdout.flush()
-        #elif hasattr(display, "display_frame"):
-        #    print("Display frame")
-        #    display.display_frame(resized_image)
-        elif hasattr(display, "display_partial_frame"):
-            print("Display partial frame")
-            loc = 25
-            display.display_partial_frame(resized_image, 0, 0, display.height, display.width, fast=True)
+        if target_mode != "3":
+            if hasattr(display, "display"):
+                display.display(resized_image)
+                #if hasattr(display, "PART_UPDATE"):
+                #    device.PART_UPDATE
+            elif hasattr(display, "show"):
+                display.show(resized_image)
+            #elif hasattr(display, "smart_update"):
+            #    print("Smart update")
+            #    display.smart_update(resized_image)
+            #    sys.stdout.flush()
+            #elif hasattr(display, "display_frame"):
+            #    print("Display frame")
+            #    display.display_frame(resized_image)
+            elif hasattr(display, "display_partial_frame"):
+                print("Display partial frame")
+                loc = 25
+                display.display_partial_frame(resized_image, 0, 0, display.height, display.width, fast=True)
+            else:
+                print("Warning: Display method not supported for this screen.")
         else:
-            print("Warning: Display method not supported for this screen.")
+            if hasattr(display, "display"):
+                display.display(img_bw, img_rw)
+            elif hasattr(display, "show"):
+                display.show(img_bw, img_rw)
+            elif hasattr(display, "display_partial_frame"):
+                print("Display partial frame")
+                loc = 25
+                display.display_partial_frame(img_bw, img_rw, 0, 0, display.height, display.width, fast=True)
+            else:
+                print("Warning: Display method not supported for this screen.")
 
     def run_display_cycle(self):
         """Main loop to manage inputs and screens."""
@@ -229,7 +286,10 @@ class DisplayManager:
                 display_name = screen_config["name"]
                 fps = DISPLAY_SETTINGS.get(screen_config['name'], {}).get("fps", 30)
                 try:
-                    current_image = Image.open(source_path).convert(settings.get("mode", "RGB"))
+                    if settings.get("mode", "RGB") == "3":
+                        current_image = Image.open(source_path).convert("L")
+                    else:
+                        current_image = Image.open(source_path).convert(settings.get("mode", "RGB"))
                 except (FileNotFoundError, IOError, Image.UnidentifiedImageError, SyntaxError) as e:
                     current_image = last_frames.get(screen_name)
                 if current_image:
@@ -243,5 +303,11 @@ if __name__ == "__main__":
     display_manager = DisplayManager(CONFIG)
     main_loop = Thread(target=display_manager.run_display_cycle, daemon=True)
     main_loop.start()
-    while True:
-        continue
+
+    # Replace busy-wait with a pause
+    try:
+        from signal import pause
+        pause()  # Keeps the main thread alive efficiently
+    except KeyboardInterrupt:
+        print("Shutting down display manager.")
+        sys.exit(0)
