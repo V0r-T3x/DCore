@@ -7,7 +7,8 @@ from importlib import import_module
 from PIL import Image
 from threading import Thread
 import time
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
+from gpiozero import LED
 import DCore.log as Log
 import sys
 
@@ -51,13 +52,19 @@ class DisplayManager:
             screens[screen_name] = self.init_display(settings)
         return screens
 
-    def set_backlight(self, pin=24, enable=True):
-        GPIO.setup(pin, GPIO.OUT)
-        GPIO.output(pin, GPIO.LOW)
-        time.sleep(0.1)
+    def set_backlight(pin=24, enable=True):
+        # Initialize the backlight control as an LED object
+        backlight = LED(pin)
+    
+        # Turn off the backlight briefly (LOW)
+        backlight.off()
+        sleep(0.1)
+    
+        # Set the backlight state based on `enable`
         if enable:
-            GPIO.output(pin, GPIO.HIGH)
-
+            backlight.on()
+        else:
+            backlight.off()
 
     def init_display(self, settings):
         """Initialize a single display based on the provided settings."""

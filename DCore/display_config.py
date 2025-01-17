@@ -30,6 +30,13 @@ DISPLAY_SETTINGS = {
         "width": 264,
         "height": 176,
     },
+    "waveshare_2.7_tri": {
+        "driver": "waveshare_epd",
+        "class": "epd2in7b",
+        "mode": "3",
+        "width": 264,
+        "height": 176,
+    },
     # Waveshare 2.7" with partial refresh
     # https://github.com/elad661/rpi_epd2in7
     "waveshare_2.7a": {

@@ -5,6 +5,7 @@
 #   waveshare_1.3_v3
 #   waveshare_1.3_v4
 #   waveshare_2.7
+#   waveshare_2.7_tri (tri-color)
 #   waveshare_2.7a (partial refresh)
 # 
 # Luma.oled:
@@ -22,7 +23,7 @@
 
 screens:
   screen1:
-    name: "displayhatmini"
+    name: "waveshare_2.7_tri"
     #spi_port: 0
     default_input: input1
 

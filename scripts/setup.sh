@@ -11,7 +11,9 @@ sudo apt install -y python3-pip python3-spidev python3-rpi.gpio python3-numpy py
 # Step 2: Install Python packages in the active virtual environment
 echo "Installing Python libraries in the current virtual environment..."
 pip install --upgrade pip
-pip install spidev RPi.GPIO pillow luma.oled luma.lcd luma.core pyyaml gpiozero lgpio
+echo "Installing luma.core from custom repository..."
+pip install git+https://github.com/V0r-T3x/luma.core.git
+pip install spidev RPi.GPIO pillow luma.oled luma.lcd pyyaml gpiozero lgpio
 
 # Step 3: Clone Waveshare e-Paper repository
 if [ ! -d "e-Paper" ]; then

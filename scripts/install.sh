@@ -23,9 +23,9 @@ VENV_PYTHON_SITE_PACKAGES="${VENV_DIR}/lib/${PYTHON_VERSION}/site-packages/${PRO
 # Function to enable interfaces if needed
 enable_interface() {
     local interface=$1
-    if ! raspi-config nonint get_$interface; then
+    if ! raspi-config nonint "get_$interface"; then
         echo "Enabling $interface..."
-        sudo raspi-config nonint do_$interface 0
+        sudo raspi-config nonint "do_$interface" 0
         echo "$interface enabled."
         return 0
     else
